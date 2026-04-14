@@ -13,14 +13,15 @@ import QueueDisplay from './components/QueueDisplay';
 import AdminPanel from './components/AdminPanel';
 import TokenStatus from './components/TokenStatus';
 
-axios.defaults.baseURL = 'http://localhost:5000';
+axios.defaults.baseURL = 'https://mediflow-hms-1.onrender.com';
 
-const socket = io('http://localhost:5000', {
+const socket = io('https://mediflow-hms-1.onrender.com', {
   transports: ['websocket'],
   reconnection: true,
   reconnectionAttempts: 5,
   reconnectionDelay: 1000
 });
+
 
 function App() {
   const [user, setUser] = useState(null);

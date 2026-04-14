@@ -1,70 +1,50 @@
-# Getting Started with Create React App
+# 🏥 MediFlow - Hospital Queue Management System
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+![Version](https://img.shields.io/badge/version-1.0.0-blue)
+![React](https://img.shields.io/badge/React-18.2.0-61dafb)
+![Flask](https://img.shields.io/badge/Flask-2.3.2-000000)
+![License](https://img.shields.io/badge/license-MIT-green)
 
-## Available Scripts
+## 📌 Overview
 
-In the project directory, you can run:
+MediFlow is a **production-ready hospital queue management system** that eliminates waiting room chaos. Patients receive digital tokens, doctors manage consultations with one click, and admins get live analytics.
 
-### `npm start`
+**Live Demo:** [https://mediflow.vercel.app](https://mediflow.vercel.app)
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+---
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## ✨ Features
 
-### `npm test`
+| Module | Capabilities |
+|--------|--------------|
+| **Patient Portal** | Digital token generation, real-time queue tracking, estimated wait time |
+| **Doctor Dashboard** | Live patient queue, one-click consultation, delay reporting with auto-return |
+| **Admin Panel** | Analytics dashboard, department congestion, peak hours analysis |
+| **Medical Records** | Write reports per patient, view history with timestamps |
+| **Authentication** | Role-based access (Patient/Doctor/Admin), secure session management |
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+---
 
-### `npm run build`
+## 🛠️ Tech Stack
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+| Layer | Technology |
+|-------|------------|
+| Frontend | React 18, React Router, Axios, Socket.io-client, Chart.js |
+| Backend | Python 3, Flask, Flask-SocketIO, Flask-CORS |
+| Database | SQLite3 |
+| Real-time | WebSocket |
+| Deployment | Vercel (frontend), Render (backend) |
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+---
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## 🚀 Quick Start
 
-### `npm run eject`
+### Prerequisites
+- Node.js (v16+)
+- Python (v3.8+)
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
-
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+### Backend Setup
+```bash
+cd backend
+pip install -r requirements.txt
+python app.py

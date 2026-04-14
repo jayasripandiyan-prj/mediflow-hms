@@ -9,11 +9,13 @@ function TokenStatus() {
   const [loading, setLoading] = useState(true);
   const [progress, setProgress] = useState(0);
 
-  useEffect(() => {
-    fetchStatus();
-    const interval = setInterval(fetchStatus, 30000);
-    return () => clearInterval(interval);
-  }, [token]);
+// eslint-disable-next-line react-hooks/exhaustive-deps
+useEffect(() => {
+  fetchStatus();
+  const interval = setInterval(fetchStatus, 30000);
+  return () => clearInterval(interval);
+}, [token]);
+
 
   useEffect(() => {
     if (status) {

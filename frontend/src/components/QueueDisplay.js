@@ -4,9 +4,38 @@ import axios from 'axios';
 function QueueDisplay({ queueData, doctors, socket }) {
   const [searchToken, setSearchToken] = useState('');
   const [patientStatus, setPatientStatus] = useState(null);
-  const [liveQueue, setLiveQueue] = useState(queueData || []);
-  const [liveDoctors, setLiveDoctors] = useState(doctors || []);
+  const [liveQueue, setLiveQueue] = useState([]);
+  const [liveDoctors, setLiveDoctors] = useState([]);
   const [connectionStatus, setConnectionStatus] = useState('checking');
+
+  // Direct API fetch as fallback
+  useEffect(() => {
+    const fetchInitialData = async () => {
+      try {
+        const response = await axios.get('http://localhost:5000/api/doctors');
+        console.log('🔍 Direct API call - doctors:', response.data);
+        if (response.data.length > 0) {
+          setLiveDoctors(response.data);
+        }
+      } catch (error) {
+        console.error('Error fetching doctors directly:', error);
+      }
+    };
+    
+    fetchInitialData();
+  }, []);
+
+  // Initialize with props
+  useEffect(() => {
+    if (queueData && queueData.length > 0) {
+      console.log('Setting liveQueue from props:', queueData);
+      setLiveQueue(queueData);
+    }
+    if (doctors && doctors.length > 0) {
+      console.log('Setting liveDoctors from props:', doctors);
+      setLiveDoctors(doctors);
+    }
+  }, [queueData, doctors]);
 
   // Listen for real-time updates
   useEffect(() => {
@@ -16,6 +45,7 @@ function QueueDisplay({ queueData, doctors, socket }) {
       socket.on('connect', () => {
         console.log('✅ Socket connected in QueueDisplay');
         setConnectionStatus('connected');
+        socket.emit('request_queue_update');
       });
 
       socket.on('disconnect', () => {
@@ -25,16 +55,24 @@ function QueueDisplay({ queueData, doctors, socket }) {
 
       socket.on('queue_update', (data) => {
         console.log('📊 QueueDisplay received update:', data);
+        // Log detailed doctor info
+        if (data.doctors) {
+          console.log('Doctor details:', data.doctors.map(d => ({
+            name: d.name,
+            waiting_count: d.waiting_count,
+            type: typeof d.waiting_count,
+            value: d.waiting_count || 0
+          })));
+          setLiveDoctors(data.doctors);
+        }
         if (data.queue) {
           setLiveQueue(data.queue);
         }
-        if (data.doctors) {
-          setLiveDoctors(data.doctors);
-        }
       });
 
-      // Request initial data
-      socket.emit('request_queue_update');
+      if (socket.connected) {
+        socket.emit('request_queue_update');
+      }
     }
 
     return () => {
@@ -46,18 +84,6 @@ function QueueDisplay({ queueData, doctors, socket }) {
     };
   }, [socket]);
 
-  // Update when props change (fallback)
-  useEffect(() => {
-    console.log('QueueDisplay props update - queueData:', queueData);
-    if (queueData && queueData.length > 0) {
-      setLiveQueue(queueData);
-    }
-    if (doctors && doctors.length > 0) {
-      setLiveDoctors(doctors);
-    }
-  }, [queueData, doctors]);
-
-  // Manual fetch function
   const fetchQueueData = async () => {
     try {
       console.log('Manually fetching queue data...');
@@ -66,6 +92,17 @@ function QueueDisplay({ queueData, doctors, socket }) {
       setLiveQueue(response.data);
     } catch (error) {
       console.error('Manual fetch error:', error);
+    }
+  };
+
+  const fetchDoctorsData = async () => {
+    try {
+      console.log('Manually fetching doctors data...');
+      const response = await axios.get('http://localhost:5000/api/doctors');
+      console.log('Doctors fetch response:', response.data);
+      setLiveDoctors(response.data);
+    } catch (error) {
+      console.error('Doctors fetch error:', error);
     }
   };
 
@@ -88,7 +125,6 @@ function QueueDisplay({ queueData, doctors, socket }) {
       <div style={styles.header}>
         <h2 style={styles.title}>Live Queue Status</h2>
         <p style={styles.subtitle}>Real-time patient queue information</p>
-        {/* Connection status indicator */}
         <div style={{ 
           marginTop: '0.5rem',
           padding: '0.25rem 1rem',
@@ -102,7 +138,6 @@ function QueueDisplay({ queueData, doctors, socket }) {
         </div>
       </div>
 
-      {/* Token Search */}
       <div style={styles.searchSection}>
         <form onSubmit={handleSearch} style={styles.searchForm}>
           <input
@@ -118,7 +153,6 @@ function QueueDisplay({ queueData, doctors, socket }) {
         </form>
       </div>
 
-      {/* Manual Refresh Button */}
       <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
         <button 
           onClick={fetchQueueData}
@@ -136,12 +170,27 @@ function QueueDisplay({ queueData, doctors, socket }) {
         >
           🔄 Refresh Queue
         </button>
+        <button 
+          onClick={fetchDoctorsData}
+          style={{
+            padding: '0.75rem 2rem',
+            background: '#2563eb',
+            color: 'white',
+            border: 'none',
+            borderRadius: '8px',
+            fontSize: '1rem',
+            fontWeight: 600,
+            cursor: 'pointer',
+            marginRight: '1rem'
+          }}
+        >
+          👨‍⚕️ Refresh Doctors
+        </button>
         <span style={{ color: '#64748b' }}>
           Patients in queue: {liveQueue.length}
         </span>
       </div>
 
-      {/* Patient Status Result */}
       {patientStatus && !patientStatus.error && (
         <div style={styles.patientStatusCard}>
           <h3 style={styles.cardTitle}>Your Queue Status</h3>
@@ -179,43 +228,49 @@ function QueueDisplay({ queueData, doctors, socket }) {
         </div>
       )}
 
-      {/* Doctor Status Overview */}
       <div style={styles.section}>
         <h3 style={styles.sectionTitle}>Doctor Status</h3>
         <div style={styles.doctorGrid}>
-          {liveDoctors.map(doctor => (
-            <div key={doctor.id} style={{
-              ...styles.doctorCard,
-              ...styles[`doctorCard${doctor.status}`]
-            }}>
-              <div style={styles.doctorCardHeader}>
-                <h4 style={styles.doctorName}>{doctor.name}</h4>
-                <span style={styles.specialization}>{doctor.specialization}</span>
-              </div>
-              <div style={styles.doctorCardBody}>
-                <div style={styles.statusIndicator}>
-                  <span style={{
-                    ...styles.statusDot,
-                    ...styles[`statusDot${doctor.status}`]
-                  }}></span>
-                  <span style={styles.statusText}>{doctor.status}</span>
+          {liveDoctors.length > 0 ? (
+            liveDoctors.map(doctor => (
+              <div key={doctor.id} style={{
+                ...styles.doctorCard,
+                ...styles[`doctorCard${doctor.status}`]
+              }}>
+                <div style={styles.doctorCardHeader}>
+                  <h4 style={styles.doctorName}>{doctor.name}</h4>
+                  <span style={styles.specialization}>{doctor.specialization}</span>
                 </div>
-                {doctor.current_patient && (
-                  <div style={styles.currentPatient}>
-                    <span>Current: <strong>{doctor.current_patient}</strong></span>
+                <div style={styles.doctorCardBody}>
+                  <div style={styles.statusIndicator}>
+                    <span style={{
+                      ...styles.statusDot,
+                      ...styles[`statusDot${doctor.status}`]
+                    }}></span>
+                    <span style={styles.statusText}>{doctor.status}</span>
                   </div>
-                )}
-                <div style={styles.waitingCount}>
-                  <span style={styles.count}>{doctor.waiting_count}</span>
-                  <span style={styles.label}>patients waiting</span>
+                  {doctor.current_patient && (
+                    <div style={styles.currentPatient}>
+                      <span>Current: <strong>{doctor.current_patient}</strong></span>
+                    </div>
+                  )}
+                  <div style={styles.waitingCount}>
+                    <span style={styles.count}>{doctor.waiting_count || 0}</span>
+                    <span style={styles.label}>patients waiting</span>
+                  </div>
+                  {/* Debug info - remove after fixing */}
+                  <div style={{fontSize: '0.8rem', color: '#666', marginTop: '0.5rem'}}>
+                    Raw: {JSON.stringify(doctor.waiting_count)}
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))
+          ) : (
+            <p>Loading doctors...</p>
+          )}
         </div>
       </div>
 
-      {/* Full Queue Table */}
       <div style={styles.section}>
         <h3 style={styles.sectionTitle}>Current Queue</h3>
         <div style={styles.tableContainer}>
@@ -267,35 +322,38 @@ function QueueDisplay({ queueData, doctors, socket }) {
         </div>
       </div>
 
-      {/* Estimated Wait Times Summary */}
       <div style={styles.section}>
         <h3 style={styles.sectionTitle}>Estimated Wait Times by Department</h3>
         <div style={styles.summaryGrid}>
-          {liveDoctors.map(doctor => (
-            <div key={doctor.id} style={styles.summaryCard}>
-              <h4 style={styles.deptName}>{doctor.specialization}</h4>
-              <div style={styles.waitBar}>
-                <div 
-                  style={{
-                    ...styles.waitBarFill,
-                    width: `${Math.min(100, ((doctor.waiting_count * (doctor.avg_time || 15)) / 60) * 100)}%`,
-                    backgroundColor: doctor.waiting_count > 5 ? '#ef4444' : '#10b981'
-                  }}
-                ></div>
+          {liveDoctors.length > 0 ? (
+            liveDoctors.map(doctor => (
+              <div key={doctor.id} style={styles.summaryCard}>
+                <h4 style={styles.deptName}>{doctor.specialization}</h4>
+                <div style={styles.waitBar}>
+                  <div 
+                    style={{
+                      ...styles.waitBarFill,
+                      width: `${Math.min(100, ((doctor.waiting_count || 0) * (doctor.avg_time || 15)) / 60 * 100)}%`,
+                      backgroundColor: (doctor.waiting_count || 0) > 5 ? '#ef4444' : '#10b981'
+                    }}
+                  ></div>
+                </div>
+                <div style={styles.waitDetails}>
+                  <span>{(doctor.waiting_count || 0)} patients</span>
+                  <span>~{(doctor.waiting_count || 0) * (doctor.avg_time || 15)} min</span>
+                </div>
               </div>
-              <div style={styles.waitDetails}>
-                <span>{doctor.waiting_count} patients</span>
-                <span>~{doctor.waiting_count * (doctor.avg_time || 15)} min</span>
-              </div>
-            </div>
-          ))}
+            ))
+          ) : (
+            <p>Loading wait times...</p>
+          )}
         </div>
       </div>
     </div>
   );
 }
 
-// Styles for QueueDisplay
+// Styles remain the same
 const styles = {
   container: {
     maxWidth: '1200px',
