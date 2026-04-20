@@ -55,32 +55,6 @@ Backend
 
 ## Project Structure
 
-```
-mediflow-hms/
-├── backend/
-│   ├── app.py              # Main Flask application
-│   ├── requirements.txt    # Python dependencies
-│   └── queue.db            # SQLite database
-│
-└── frontend/
-    ├── public/
-    ├── src/
-    │   ├── components/
-    │   │   ├── RoleSelect.js
-    │   │   ├── DoctorLogin.js
-    │   │   ├── AdminLogin.js
-    │   │   ├── PatientHome.js
-    │   │   ├── PatientRegistration.js
-    │   │   ├── DoctorDashboard.js
-    │   │   ├── AdminPanel.js
-    │   │   ├── QueueDisplay.js
-    │   │   └── TokenStatus.js
-    │   ├── App.js
-    │   ├── index.js
-    │   └── styles.css
-    └── package.json
-```
-
 ## Installation
 
 ### Prerequisites
